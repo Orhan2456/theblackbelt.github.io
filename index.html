@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The BlackBelt</title>
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0f0f13;
+            --bg-panel: #1c1c24;
+            --neon-cyan: #00ffcc;
+            --neon-magenta: #ff00ff;
+            --text-light: #ffffff;
+            --text-muted: #888888;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- GİRİŞ / KAYIT EKRANI --- */
+        #login-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .login-box {
+            background-color: var(--bg-panel);
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .login-box h2 {
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: var(--bg-dark);
+            border: 1px solid #444;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            text-align: center;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .login-box input:focus {
+            border-color: var(--neon-cyan);
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--neon-cyan);
+            color: #000;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-box button:hover {
+            background-color: #00ccaa;
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        #login-error {
+            color: #ff3333;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        /* --- ANA UYGULAMA (Başlangıçta Gizli) --- */
+        #main-app {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Üst Bar */
+        .top-bar {
+            background-color: var(--bg-panel);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            font-size: 0.9rem;
+        }
+
+        .status { color: var(--neon-cyan); font-weight: bold; }
+        .my-id { color: var(--neon-magenta); font-weight: bold; }
+
+        /* Ana İçerik */
+        .main-container {
+            display: flex;
+            flex: 1;
+            padding: 10px;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-panel);
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .panel h3 { font-size: 1rem; margin-bottom: 10px; }
+        .panel.public h3 { color: var(--neon-cyan); }
+        .panel.private h3 { color: var(--neon-magenta); }
+
+        .feed {
+            flex: 1;
+            background-color: var(--bg-dark);
+            border: 1px solid #333;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            border-radius: 4px;
+        }
+
+        .feed.public-feed { border-color: var(--neon-cyan); }
+        .feed.private-feed { border-color: var(--neon-magenta); }
+
+        .message { margin-bottom: 10px; word-wrap: break-word; }
+
+        /* Alt Kontrol Paneli */
+        .bottom-bar {
+            background-color: var(--bg-panel);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-top: 1px solid #333;
+        }
+
+        .control-group { display: flex; gap: 10px; }
+        
+        .control-group input {
+            background-color: var(--bg-dark);
+            border: 1px solid #444;
+            color: var(--text-light);
+            padding: 10px;
+            border-radius: 4px;
+            outline: none;
+            flex: 1;
+        }
+        
+        .control-group button {
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .btn-connect { background-color: #ffaa00; color: #000; }
+        .btn-public { background-color: var(--neon-cyan); color: #000; }
+        .btn-private { background-color: var(--neon-magenta); color: #fff; }
+
+        /* Mobil Uyumluluk */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; overflow-y: auto; }
+            .panel { min-height: 250px; flex: none; }
+            .control-group { flex-direction: column; }
+            .control-group button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>AĞA KATIL</h2>
+            <input type="text" id="username-input" placeholder="Kullanıcı Adı Seçin" autocomplete="off">
+            <button onclick="login()">BAĞLANTIYI BAŞLAT</button>
+            <div id="login-error"></div>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <div class="top-bar">
+            <span class="status">⚡ AĞA BAĞLI</span>
+            <span class="my-id">Hesap: <span id="my-id-text">...</span></span>
+        </div>
+
+        <div class="main-container">
+            <div class="panel public">
+                <h3>GLOBAL AKIŞ</h3>
+                <div id="public-feed" class="feed public-feed"></div>
+            </div>
+
+            <div class="panel private">
+                <h3>ÖZEL MESAJLAR & TRAFİK</h3>
+                <div id="private-feed" class="feed private-feed"></div>
+            </div>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="control-group">
+                <input type="text" id="peer-id-input" placeholder="Bağlanılacak Kişinin Kullanıcı Adı">
+                <button class="btn-connect" onclick="connectToPeer()">AĞA BAĞLAN</button>
+            </div>
+            <div class="control-group">
+                <input type="text" id="msg-input" placeholder="Mesajınızı yazın...">
+                <button class="btn-public" onclick="sendPublic()">YAYINLA</button>
+                <input type="text" id="target-id-input" placeholder="Hedef Kullanıcı Adı" style="flex: 0.5;">
+                <button class="btn-private" onclick="sendPrivate()">ŞİFRELİ GÖNDER</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const loginError = document.getElementById('login-error');
+        const usernameInput = document.getElementById('username-input');
+
+        const myIdText = document.getElementById('my-id-text');
+        const publicFeed = document.getElementById('public-feed');
+        const privateFeed = document.getElementById('private-feed');
+        const msgInput = document.getElementById('msg-input');
+        const targetIdInput = document.getElementById('target-id-input');
+        const peerIdInput = document.getElementById('peer-id-input');
+
+        let peer = null;
+        let myId = '';
+        let connectedPeers = {};
+
+        // Enter tuşu ile giriş yapma
+        usernameInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") login();
+        });
+
+        // HESAP OLUŞTURMA / GİRİŞ FONKSİYONU
+        function login() {
+            const requestedName = usernameInput.value.trim().toLowerCase(); // Küçük harfe çevirerek standartlaştırma
+            
+            if (requestedName.length < 3) {
+                loginError.innerText = "Kullanıcı adı en az 3 karakter olmalıdır.";
+                return;
+            }
+            if (!/^[a-z0-9_]+$/.test(requestedName)) {
+                loginError.innerText = "Sadece harf, rakam ve alt çizgi (_) kullanın.";
+                return;
+            }
+
+            loginError.innerText = "Ağa bağlanılıyor, lütfen bekleyin...";
+
+            // Özel isimle ağ oluşturma isteği
+            peer = new Peer(requestedName);
+
+            // Başarılı olursa
+            peer.on('open', function(id) {
+                myId = id;
+                myIdText.innerText = id;
+                
+                // Ekranları değiştir
+                loginScreen.style.display = 'none';
+                mainApp.style.display = 'flex';
+                
+                logMessage(privateFeed, `[SİSTEM] Ağa '${id}' adıyla katıldınız.`, '#888888');
+            });
+
+            // Hata olursa (örn. isim başkası tarafından kullanılıyorsa)
+            peer.on('error', function(err) {
+                if (err.type === 'unavailable-id') {
+                    loginError.innerText = "Bu kullanıcı adı şu an ağda aktif. Başka bir isim seçin.";
+                } else {
+                    loginError.innerText = "Bağlantı hatası: " + err.type;
+                }
+            });
+
+            // Birisi bize bağlandığında
+            peer.on('connection', function(conn) {
+                setupConnection(conn);
+                logMessage(privateFeed, `[SİSTEM] Yeni bir düğüm bağlandı: ${conn.peer}`, '#00ffcc');
+            });
+        }
+
+        function connectToPeer() {
+            const targetId = peerIdInput.value.trim().toLowerCase();
+            if (targetId && targetId !== myId) {
+                const conn = peer.connect(targetId);
+                setupConnection(conn);
+                peerIdInput.value = '';
+            }
+        }
+
+        function setupConnection(conn) {
+            conn.on('open', function() {
+                connectedPeers[conn.peer] = conn;
+                logMessage(privateFeed, `[BAŞARILI] '${conn.peer}' ile bağlantı kuruldu.`, '#00ffcc');
+            });
+
+            conn.on('data', function(data) {
+                processPacket(data);
+            });
+
+            conn.on('close', function() {
+                delete connectedPeers[conn.peer];
+                logMessage(privateFeed, `[SİSTEM] Bağlantı koptu: ${conn.peer}`, '#888888');
+            });
+        }
+
+        function processPacket(packet) {
+            if (packet.type === 'PUBLIC') {
+                logMessage(publicFeed, `[${packet.sender}]: ${packet.content}`, '#00ffcc');
+            } 
+            else if (packet.type === 'PRIVATE') {
+                if (packet.target === myId) {
+                    const decrypted = atob(packet.content);
+                    logMessage(privateFeed, `🔓 [ÖZEL MESAJ - ${packet.sender}]: ${decrypted}`, '#00ffcc');
+                } else {
+                    logMessage(privateFeed, `🔒 [Şifreli Veri - ${packet.sender} -> ${packet.target}] ${packet.content.substring(0, 15)}...`, '#888888');
+                }
+            }
+        }
+
+        function sendPublic() {
+            const text = msgInput.value.trim();
+            if (!text) return;
+
+            const packet = { sender: myId, type: 'PUBLIC', content: text, target: 'ALL' };
+            logMessage(publicFeed, `[BEN]: ${text}`, '#ffffff');
+            
+            Object.values(connectedPeers).forEach(conn => conn.send(packet));
+            msgInput.value = '';
+        }
+
+        function sendPrivate() {
+            const text = msgInput.value.trim();
+            const targetId = targetIdInput.value.trim().toLowerCase();
+            if (!text || !targetId) return;
+
+            const encrypted = btoa(text);
+            const packet = { sender: myId, type: 'PRIVATE', content: encrypted, target: targetId };
+
+            logMessage(privateFeed, `🚀 [Özel Gönderildi -> ${targetId}]: ${text}`, '#ff00ff');
+
+            Object.values(connectedPeers).forEach(conn => conn.send(packet));
+            
+            msgInput.value = '';
+            targetIdInput.value = '';
+        }
+
+        function logMessage(container, text, color) {
+            const msgDiv = document.createElement('div');
+            msgDiv.style.color = color;
+            msgDiv.style.marginBottom = "8px";
+            msgDiv.textContent = text;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+</body>
+</html>
