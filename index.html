@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The BlackBelt</title>
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <style>
@@ -22,12 +22,16 @@
             font-family: 'Helvetica', Arial, sans-serif;
         }
 
+        html, body {
+            height: 100%;
+        }
+
         body {
             background-color: var(--bg-dark);
             color: var(--text-light);
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            height: 100dvh; /* Mobilde tarayıcı çubuğuna göre kendini ayarlar */
             overflow: hidden;
         }
 
@@ -195,12 +199,51 @@
         .btn-public { background-color: var(--neon-cyan); color: #000; }
         .btn-private { background-color: var(--neon-magenta); color: #fff; }
 
-        /* Mobil Uyumluluk */
+        /* --- MOBİL UYUMLULUK (TAMAMEN YENİLENDİ) --- */
         @media (max-width: 768px) {
-            .main-container { flex-direction: column; overflow-y: auto; }
-            .panel { min-height: 250px; flex: none; }
-            .control-group { flex-direction: column; }
-            .control-group button { width: 100%; }
+            .top-bar { font-size: 0.8rem; padding: 8px 10px; }
+            
+            .main-container { 
+                flex-direction: column; 
+                padding: 5px; 
+                gap: 5px; 
+            }
+            
+            .panel { 
+                min-height: 0; /* Taşmayı önleyen en önemli satır */
+                flex: 1; /* Paneller ekranı eşit bölüşür */
+                padding: 8px; 
+            }
+            
+            .panel h3 { font-size: 0.85rem; margin-bottom: 5px; }
+            
+            .feed { padding: 5px; font-size: 0.8rem; }
+            
+            .bottom-bar { 
+                padding: 8px; 
+                gap: 8px; 
+            }
+            
+            .control-group { 
+                /* Kutuları alt alta yığmak yerine ızgara kullanıyoruz */
+                display: grid; 
+                grid-template-columns: 1fr auto; 
+                gap: 6px; 
+            }
+            
+            .control-group input { 
+                padding: 8px; 
+                font-size: 0.9rem; 
+            }
+            
+            .control-group button { 
+                width: auto; 
+                padding: 8px 12px; 
+                font-size: 0.8rem; 
+            }
+
+            .login-box { padding: 20px; }
+            .login-box h2 { font-size: 1.3rem; }
         }
     </style>
 </head>
@@ -241,7 +284,7 @@
             <div class="control-group">
                 <input type="text" id="msg-input" placeholder="Mesajınızı yazın...">
                 <button class="btn-public" onclick="sendPublic()">YAYINLA</button>
-                <input type="text" id="target-id-input" placeholder="Hedef Kullanıcı Adı" style="flex: 0.5;">
+                <input type="text" id="target-id-input" placeholder="Hedef Kullanıcı Adı">
                 <button class="btn-private" onclick="sendPrivate()">ŞİFRELİ GÖNDER</button>
             </div>
         </div>
